@@ -17,6 +17,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [following, setFollowing] = useState(false);
+  const [requested, setRequested] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ bio: '', avatar: '' });
@@ -29,13 +30,15 @@ export default function ProfilePage() {
       setLoading(true);
       setError(null);
       try {
-        const [profileRes, postsRes] = await Promise.all([
-          usersAPI.getProfile(id),
-          usersAPI.getUserPosts(id),
-        ]);
+        const profileRes = await usersAPI.getProfile(id);
+        const actualId = profileRes.data._id;
+        
+        const postsRes = await usersAPI.getUserPosts(actualId);
+        
         setProfile(profileRes.data);
         setPosts(postsRes.data);
         setFollowing(profileRes.data.followers?.includes(currentUser?._id));
+        setRequested(profileRes.data.followRequests?.includes(currentUser?._id));
         setEditForm({ bio: profileRes.data.bio || '', avatar: profileRes.data.avatar || '' });
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to load profile');
@@ -47,13 +50,14 @@ export default function ProfilePage() {
   }, [id, currentUser?._id]);
 
   const handleFollow = async () => {
+    if (!profile) return;
     setFollowLoading(true);
     try {
-      await usersAPI.follow(id);
-      setFollowing(true);
-      setProfile((p) => ({ ...p, followers: [...(p.followers || []), currentUser._id] }));
+      await usersAPI.follow(profile._id);
+      setRequested(true);
+      setProfile((p) => ({ ...p, followRequests: [...(p.followRequests || []), currentUser._id] }));
     } catch (err) {
-      // already following or error
+      // already requested or error
     } finally {
       setFollowLoading(false);
     }
@@ -61,9 +65,10 @@ export default function ProfilePage() {
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
+    if (!profile) return;
     setSaving(true);
     try {
-      const res = await usersAPI.updateProfile(id, editForm);
+      const res = await usersAPI.updateProfile(profile._id, editForm);
       setProfile((p) => ({ ...p, ...res.data }));
       dispatch(updateUser(res.data));
       setEditing(false);
@@ -126,14 +131,14 @@ export default function ProfilePage() {
               ) : (
                 <button
                   onClick={handleFollow}
-                  disabled={following || followLoading}
+                  disabled={following || requested || followLoading}
                   style={{
                     ...styles.followBtn,
-                    background: following ? '#e0e7ff' : '#4f8ef7',
-                    color: following ? '#4f8ef7' : '#fff',
+                    background: following || requested ? '#e0e7ff' : '#4f8ef7',
+                    color: following || requested ? '#4f8ef7' : '#fff',
                   }}
                 >
-                  {followLoading ? '...' : following ? 'Following' : 'Follow'}
+                  {followLoading ? '...' : following ? 'Following' : requested ? 'Requested' : 'Follow'}
                 </button>
               )}
             </div>
@@ -169,7 +174,14 @@ export default function ProfilePage() {
         {/* Posts */}
         <div style={styles.postsSection}>
           <h3 style={styles.postsTitle}>Posts</h3>
-          {posts.length === 0 ? (
+          
+          {!isOwnProfile && !following ? (
+            <div style={styles.lockedBox}>
+              <div style={styles.lockedIcon}>🔒</div>
+              <h4 style={styles.lockedTitle}>This Account is Private</h4>
+              <p style={styles.lockedText}>Follow this user to see their posts and updates.</p>
+            </div>
+          ) : posts.length === 0 ? (
             <div style={styles.noPosts}>No posts yet.</div>
           ) : (
             posts.map((post) => <PostCard key={post._id} post={post} />)
@@ -352,4 +364,27 @@ const styles = {
     padding: '40px 0',
     fontSize: '15px',
   },
+  lockedBox: {
+    textAlign: 'center',
+    padding: '60px 20px',
+    background: 'var(--bg-secondary)',
+    borderRadius: '12px',
+    border: '1px solid var(--border-color)',
+    marginTop: '10px',
+  },
+  lockedIcon: {
+    fontSize: '48px',
+    marginBottom: '16px',
+  },
+  lockedTitle: {
+    fontSize: '18px',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+    margin: '0 0 8px 0',
+  },
+  lockedText: {
+    fontSize: '14px',
+    color: 'var(--text-secondary)',
+    margin: 0,
+  }
 };

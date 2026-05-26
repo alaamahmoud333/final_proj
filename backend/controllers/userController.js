@@ -36,7 +36,14 @@ export const searchUsers = async (req, res) => {
 // GET USER PROFILE (PROFILE PAGE)
 export const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-password");
+    const isObjectId = req.params.id.match(/^[0-9a-fA-F]{24}$/);
+    let user;
+    if (isObjectId) {
+      user = await User.findById(req.params.id).select("-password");
+    } else {
+      user = await User.findOne({ username: req.params.id }).select("-password");
+    }
+    
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -89,23 +96,26 @@ export const getUserPosts = async (req, res) => {
   }
 };
 
-// FOLLOW USER
+// FOLLOW REQUEST USER
 export const followUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    const currentUser = await User.findById(req.user.id);
-
-    if (!user.followers.includes(req.user.id)) {
-      user.followers.push(req.user.id);
-      currentUser.following.push(req.params.id);
-
-      await user.save();
-      await currentUser.save();
-
-      res.json("User followed");
-    } else {
-      res.status(400).json("Already followed");
+    
+    // Check if already following
+    if (user.followers.includes(req.user.id)) {
+      return res.status(400).json("Already following");
     }
+
+    // Check if already requested
+    if (user.followRequests && user.followRequests.includes(req.user.id)) {
+      return res.status(400).json("Request already sent");
+    }
+
+    if (!user.followRequests) user.followRequests = [];
+    user.followRequests.push(req.user.id);
+    await user.save();
+
+    res.json("Follow request sent");
   } catch (err) {
     res.status(500).json(err);
   }
