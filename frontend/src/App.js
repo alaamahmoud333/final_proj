@@ -3,7 +3,12 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
+import MessagesPage from './pages/MessagesPage';
+import NotificationsPage from './pages/NotificationsPage';
+import SearchPage from './pages/SearchPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
+import { ThemeProvider } from './context/ThemeProvider';
 
 function App() {
   return (
@@ -15,7 +20,11 @@ function App() {
           path="/"
           element={
             <ProtectedRoute>
-              <HomePage />
+              <ThemeProvider>
+                <Layout>
+                  <HomePage />
+                </Layout>
+              </ThemeProvider>
             </ProtectedRoute>
           }
         />
@@ -23,7 +32,47 @@ function App() {
           path="/profile/:id"
           element={
             <ProtectedRoute>
-              <ProfilePage />
+              <ThemeProvider>
+                <Layout>
+                  <ProfilePage />
+                </Layout>
+              </ThemeProvider>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <ThemeProvider>
+                <Layout>
+                  <MessagesPage />
+                </Layout>
+              </ThemeProvider>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <ThemeProvider>
+                <Layout>
+                  <NotificationsPage />
+                </Layout>
+              </ThemeProvider>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/search"
+          element={
+            <ProtectedRoute>
+              <ThemeProvider>
+                <Layout>
+                  <SearchPage />
+                </Layout>
+              </ThemeProvider>
             </ProtectedRoute>
           }
         />

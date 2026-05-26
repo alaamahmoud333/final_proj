@@ -110,3 +110,22 @@ export const followUser = async (req, res) => {
     res.status(500).json(err);
   }
 };
+
+// GET FRIEND SUGGESTIONS
+export const getSuggestions = async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    const followingIds = currentUser.following;
+    followingIds.push(currentUser._id); // Exclude self
+
+    const suggestions = await User.aggregate([
+      { $match: { _id: { $nin: followingIds } } },
+      { $sample: { size: 5 } },
+      { $project: { password: 0 } }
+    ]);
+
+    res.json(suggestions);
+  } catch (err) {
+    res.status(500).json({ message: "Could not fetch suggestions", error: err.message });
+  }
+};

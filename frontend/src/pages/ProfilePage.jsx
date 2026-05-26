@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { usersAPI } from '../services/api';
 import { updateUser } from '../redux/authSlice';
-import Navbar from '../components/Navbar';
+
 import PostCard from '../components/PostCard';
 import AvatarPicker from '../components/AvatarPicker';
 
@@ -76,8 +76,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div style={styles.page}>
-        <Navbar />
+      <div className="profile-container">
         <div style={styles.loading}>Loading profile...</div>
       </div>
     );
@@ -85,16 +84,14 @@ export default function ProfilePage() {
 
   if (error) {
     return (
-      <div style={styles.page}>
-        <Navbar />
+      <div className="profile-container">
         <div style={styles.errorBox}>{error}</div>
       </div>
     );
   }
 
   return (
-    <div style={styles.page}>
-      <Navbar />
+    <div className="profile-container">
       <div style={styles.container}>
         {/* Profile header */}
         <div style={styles.profileHeader}>
@@ -184,10 +181,6 @@ export default function ProfilePage() {
 }
 
 const styles = {
-  page: {
-    minHeight: '100vh',
-    background: '#f3f4f8',
-  },
   container: {
     maxWidth: '700px',
     margin: '0 auto',
@@ -209,11 +202,12 @@ const styles = {
     textAlign: 'center',
   },
   profileHeader: {
-    background: '#fff',
+    background: 'var(--bg-secondary)',
     borderRadius: '12px',
     overflow: 'hidden',
     marginBottom: '20px',
     boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+    border: '1px solid var(--border-color)',
   },
   coverBg: {
     height: '100px',
@@ -242,16 +236,16 @@ const styles = {
   name: {
     fontSize: '20px',
     fontWeight: 700,
-    color: '#1a1a2e',
+    color: 'var(--text-primary)',
     margin: '0 0 2px 0',
   },
   username: {
-    color: '#888',
+    color: 'var(--text-secondary)',
     fontSize: '14px',
     margin: '0 0 6px 0',
   },
   bio: {
-    color: '#555',
+    color: 'var(--text-secondary)',
     fontSize: '14px',
     lineHeight: '1.5',
     margin: '0 0 10px 0',
@@ -262,7 +256,7 @@ const styles = {
   },
   stat: {
     fontSize: '14px',
-    color: '#666',
+    color: 'var(--text-secondary)',
   },
   actions: {
     flexShrink: 0,
@@ -286,23 +280,24 @@ const styles = {
     fontWeight: 700,
   },
   editCard: {
-    background: '#fff',
+    background: 'var(--bg-secondary)',
     borderRadius: '12px',
     padding: '20px',
     marginBottom: '20px',
     boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+    border: '1px solid var(--border-color)',
   },
   editTitle: {
     fontSize: '16px',
     fontWeight: 700,
-    color: '#1a1a2e',
+    color: 'var(--text-primary)',
     marginBottom: '16px',
   },
   label: {
     display: 'block',
     fontSize: '13px',
     fontWeight: 600,
-    color: '#555',
+    color: 'var(--text-secondary)',
     marginBottom: '6px',
     marginTop: '12px',
   },
@@ -347,13 +342,13 @@ const styles = {
   postsTitle: {
     fontSize: '16px',
     fontWeight: 700,
-    color: '#1a1a2e',
+    color: 'var(--text-primary)',
     marginBottom: '16px',
     paddingLeft: '4px',
   },
   noPosts: {
     textAlign: 'center',
-    color: '#aaa',
+    color: 'var(--text-secondary)',
     padding: '40px 0',
     fontSize: '15px',
   },

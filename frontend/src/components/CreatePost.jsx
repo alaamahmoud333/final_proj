@@ -54,12 +54,12 @@ export default function CreatePost() {
 
 const styles = {
   container: {
-    background: '#fff',
+    background: 'var(--bg-secondary)',
     borderRadius: '12px',
     padding: '20px',
     marginBottom: '20px',
     boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-    border: '1px solid #eee',
+    border: '1px solid var(--border-color)',
   },
   header: {
     display: 'flex',
@@ -84,7 +84,7 @@ const styles = {
     border: 'none',
     outline: 'none',
     fontSize: '16px',
-    color: '#333',
+    color: 'var(--text-primary)',
     resize: 'none',
     fontFamily: 'inherit',
     lineHeight: '1.5',
@@ -95,12 +95,12 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderTop: '1px solid #f0f0f0',
+    borderTop: '1px solid var(--border-color)',
     paddingTop: '10px',
   },
   charCount: {
     fontSize: '12px',
-    color: '#aaa',
+    color: 'var(--text-secondary)',
   },
   submitBtn: {
     background: '#4f8ef7',

@@ -34,6 +34,7 @@ export const postsAPI = {
   create: (data) => api.post('/posts', data),
   like: (id) => api.put(`/posts/${id}/like`),
   addComment: (id, text) => api.post(`/posts/${id}/comment`, { text }),
+  search: (q) => api.get(`/posts/search?q=${encodeURIComponent(q)}`),
 };
 
 export const usersAPI = {
@@ -43,6 +44,7 @@ export const usersAPI = {
   updateProfile: (id, data) => api.put(`/users/profile/${id}`, data),
   getUserPosts: (id) => api.get(`/users/${id}/posts`),
   follow: (id) => api.put(`/users/${id}/follow`),
+  getSuggestions: () => api.get('/users/suggestions'),
 };
 
 export const notificationsAPI = {

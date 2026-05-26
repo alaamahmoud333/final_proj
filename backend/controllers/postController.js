@@ -39,6 +39,25 @@ export const getPosts = async (req, res) => {
   }
 };
 
+// SEARCH POSTS
+export const searchPosts = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) return res.status(400).json({ message: "Search query is required" });
+
+    const posts = await Post.find({
+      content: { $regex: q, $options: "i" }
+    })
+      .populate("user", "name username avatar")
+      .populate("comments.user", "name username avatar")
+      .sort({ createdAt: -1 });
+
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ message: 'Could not search posts', error: err.message });
+  }
+};
+
 // LIKE / UNLIKE POST
 export const likePost = async (req, res) => {
   try {

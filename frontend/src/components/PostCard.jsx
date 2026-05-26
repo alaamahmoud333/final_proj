@@ -13,14 +13,24 @@ export default function PostCard({ post }) {
   const hasLiked = post.likes?.some((id) => id === user?._id || id?._id === user?._id);
 
   const handleLike = () => {
-    dispatch(likePost(post._id));
+    dispatch(likePost({ postId: post._id, userId: user._id }));
   };
 
   const handleComment = async (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
     setSubmitting(true);
-    await dispatch(addComment({ postId: post._id, text: commentText.trim() }));
+    
+    // Generate tempId for optimistic UI
+    const tempId = Date.now().toString();
+    
+    dispatch(addComment({ 
+      postId: post._id, 
+      text: commentText.trim(),
+      user: { _id: user._id, username: user.username, avatar: user.avatar },
+      tempId
+    }));
+    
     setCommentText('');
     setSubmitting(false);
   };
@@ -110,12 +120,12 @@ export default function PostCard({ post }) {
 
 const styles = {
   card: {
-    background: '#fff',
+    background: 'var(--bg-secondary)',
     borderRadius: '12px',
     padding: '20px',
     marginBottom: '16px',
     boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-    border: '1px solid #eee',
+    border: '1px solid var(--border-color)',
   },
   header: {
     marginBottom: '12px',
@@ -134,16 +144,16 @@ const styles = {
   },
   username: {
     fontWeight: 600,
-    color: '#1a1a2e',
+    color: 'var(--text-primary)',
     fontSize: '14px',
   },
   date: {
-    color: '#999',
+    color: 'var(--text-secondary)',
     fontSize: '12px',
     marginTop: '2px',
   },
   content: {
-    color: '#333',
+    color: 'var(--text-primary)',
     fontSize: '15px',
     lineHeight: '1.5',
     margin: '0 0 12px 0',
@@ -158,7 +168,7 @@ const styles = {
   actions: {
     display: 'flex',
     gap: '16px',
-    borderTop: '1px solid #f0f0f0',
+    borderTop: '1px solid var(--border-color)',
     paddingTop: '10px',
   },
   actionBtn: {
@@ -173,7 +183,7 @@ const styles = {
   },
   commentsSection: {
     marginTop: '12px',
-    borderTop: '1px solid #f0f0f0',
+    borderTop: '1px solid var(--border-color)',
     paddingTop: '12px',
   },
   commentsList: {
@@ -194,11 +204,11 @@ const styles = {
   commentUser: {
     fontWeight: 600,
     fontSize: '13px',
-    color: '#1a1a2e',
+    color: 'var(--text-primary)',
   },
   commentText: {
     fontSize: '13px',
-    color: '#555',
+    color: 'var(--text-secondary)',
   },
   commentForm: {
     display: 'flex',
@@ -207,10 +217,12 @@ const styles = {
   commentInput: {
     flex: 1,
     padding: '8px 12px',
-    border: '1px solid #ddd',
+    border: '1px solid var(--border-color)',
     borderRadius: '20px',
     fontSize: '13px',
     outline: 'none',
+    background: 'var(--bg-secondary)',
+    color: 'var(--text-primary)',
   },
   commentSubmit: {
     background: '#4f8ef7',

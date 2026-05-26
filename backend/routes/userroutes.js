@@ -6,11 +6,13 @@ import {
   getUserPosts,
   followUser,
   searchUsers,
+  getSuggestions,
 } from "../controllers/userController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+router.get("/suggestions", protect, getSuggestions);
 router.get("/search", protect, searchUsers);
 router.get("/profile/:id", protect, getProfile);
 router.get("/:id", protect, getUser);

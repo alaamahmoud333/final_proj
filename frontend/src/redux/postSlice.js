@@ -19,23 +19,23 @@ export const createPost = createAsyncThunk('posts/create', async (postData, { re
   }
 });
 
-export const likePost = createAsyncThunk('posts/like', async (postId, { rejectWithValue }) => {
+export const likePost = createAsyncThunk('posts/like', async ({ postId, userId }, { rejectWithValue }) => {
   try {
     const response = await postsAPI.like(postId);
     return response.data.post;
   } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Failed to like post');
+    return rejectWithValue({ postId, userId, error: err.response?.data?.message || 'Failed to like post' });
   }
 });
 
 export const addComment = createAsyncThunk(
   'posts/addComment',
-  async ({ postId, text }, { rejectWithValue }) => {
+  async ({ postId, text, user, tempId }, { rejectWithValue }) => {
     try {
       const response = await postsAPI.addComment(postId, text);
-      return { postId, comments: response.data.comments };
+      return { postId, comments: response.data.comments, tempId };
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || 'Failed to add comment');
+      return rejectWithValue({ postId, tempId, error: err.response?.data?.message || 'Failed to add comment' });
     }
   }
 );
@@ -79,15 +79,57 @@ const postSlice = createSlice({
         state.creating = false;
         state.error = action.payload;
       })
+      
+      // OPTIMISTIC LIKE
+      .addCase(likePost.pending, (state, action) => {
+        const { postId, userId } = action.meta.arg;
+        const post = state.posts.find((p) => p._id === postId);
+        if (post) {
+          const hasLiked = post.likes.some((id) => id === userId || id?._id === userId);
+          if (hasLiked) {
+            post.likes = post.likes.filter((id) => id !== userId && id?._id !== userId);
+          } else {
+            post.likes.push(userId);
+          }
+        }
+      })
       .addCase(likePost.fulfilled, (state, action) => {
         const updated = action.payload;
         const index = state.posts.findIndex((p) => p._id === updated._id);
         if (index !== -1) state.posts[index] = updated;
       })
+      .addCase(likePost.rejected, (state, action) => {
+        // Revert on failure
+        const { postId, userId } = action.payload || action.meta.arg;
+        const post = state.posts.find((p) => p._id === postId);
+        if (post) {
+          const hasLiked = post.likes.some((id) => id === userId || id?._id === userId);
+          if (hasLiked) post.likes = post.likes.filter((id) => id !== userId && id?._id !== userId);
+          else post.likes.push(userId);
+        }
+      })
+
+      // OPTIMISTIC COMMENT
+      .addCase(addComment.pending, (state, action) => {
+        const { postId, text, user, tempId } = action.meta.arg;
+        const post = state.posts.find((p) => p._id === postId);
+        if (post) {
+          post.comments.push({ _id: tempId, user, text, createdAt: new Date().toISOString() });
+        }
+      })
       .addCase(addComment.fulfilled, (state, action) => {
         const { postId, comments } = action.payload;
         const post = state.posts.find((p) => p._id === postId);
-        if (post) post.comments = comments;
+        if (post) {
+          post.comments = comments; // Replace with actual server comments
+        }
+      })
+      .addCase(addComment.rejected, (state, action) => {
+        const { postId, tempId } = action.payload || action.meta.arg;
+        const post = state.posts.find((p) => p._id === postId);
+        if (post) {
+          post.comments = post.comments.filter(c => c._id !== tempId); // Revert
+        }
       });
   },
 });
